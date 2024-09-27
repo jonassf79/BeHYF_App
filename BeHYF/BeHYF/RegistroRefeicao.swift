@@ -7,9 +7,55 @@
 
 import SwiftUI
 
-struct RegistroRefeicao: View {
+class CampoDeTextoUm: ObservableObject {
+    @Published var field1: String {
+        didSet { UserDefaults.standard.set(field1, forKey: "field1") }
+    }
+    @Published var field2: String {
+        didSet { UserDefaults.standard.set(field2, forKey: "field2") }
+    }
+    @Published var field3: String {
+        didSet { UserDefaults.standard.set(field3, forKey: "field3") }
+    }
+    @Published var field4: String {
+        didSet { UserDefaults.standard.set(field4, forKey: "field4") }
+    }
     
-    @State private var textInput = ""
+    init() {
+        self.field1 = UserDefaults.standard.string(forKey: "field1") ?? ""
+        self.field2 = UserDefaults.standard.string(forKey: "field2") ?? ""
+        self.field3 = UserDefaults.standard.string(forKey: "field3") ?? ""
+        self.field4 = UserDefaults.standard.string(forKey: "field4") ?? ""
+    }
+}
+
+class CampoDeTextoDois: ObservableObject {
+    @Published var field5: String {
+        didSet { UserDefaults.standard.set(field5, forKey: "field5") }
+    }
+    @Published var field6: String {
+        didSet { UserDefaults.standard.set(field6, forKey: "field6") }
+    }
+    @Published var field7: String {
+        didSet { UserDefaults.standard.set(field7, forKey: "field7") }
+    }
+    @Published var field8: String {
+        didSet { UserDefaults.standard.set(field8, forKey: "field8") }
+    }
+    
+    init() {
+        self.field5 = UserDefaults.standard.string(forKey: "field5") ?? ""
+        self.field6 = UserDefaults.standard.string(forKey: "field6") ?? ""
+        self.field7 = UserDefaults.standard.string(forKey: "field7") ?? ""
+        self.field8 = UserDefaults.standard.string(forKey: "field8") ?? ""
+    }
+}
+
+struct RegistroRefeicao: View {
+        
+    @StateObject private var viewModelUm = CampoDeTextoUm()
+    @StateObject private var viewModelDois = CampoDeTextoDois()
+    
     
     var body: some View {
         NavigationStack {
@@ -42,11 +88,11 @@ struct RegistroRefeicao: View {
                     HStack {
                         VStack{
                             HStack{
-                                Text("Iogurte")
+                                TextField("(Nome do alimento)", text: $viewModelDois.field5)
                                     .foregroundStyle(.blue)
                                     .bold()
                                 Spacer()
-                                Text("350ml/200kcal ")
+                                TextField("ml/kcal", text: $viewModelDois.field6)
                                 
                             }
                             
@@ -60,8 +106,7 @@ struct RegistroRefeicao: View {
                                 
                             }
                             HStack{
-                                Text("Um bowl de iogurte natural sem gordura. ")
-                                    .font(.footnote)
+                                TextField("Digite...", text: $viewModelUm.field1)
                                 Spacer()
                             }
                             
@@ -74,8 +119,7 @@ struct RegistroRefeicao: View {
                                 Spacer()
                             }
                             HStack{
-                                Text("Não senti culpa ao comer.")
-                                    .font(.footnote)
+                                TextField("Digite...", text: $viewModelUm.field2)
                                 Spacer()
                                 
                             }
@@ -93,11 +137,11 @@ struct RegistroRefeicao: View {
                     HStack {
                         VStack{
                             HStack{
-                                Text("Chá")
+                                TextField("(Nome do alimento)", text: $viewModelDois.field7)
                                     .foregroundStyle(.blue)
                                     .bold()
                                 Spacer()
-                                Text("350ml/200kcal ")
+                                TextField("ml/kcal", text: $viewModelDois.field8)
                                 
                             }
                             
@@ -111,8 +155,7 @@ struct RegistroRefeicao: View {
                                 
                             }
                             HStack{
-                                TextField("Descreva o alimento", text: $textInput)
-                                    .font(.footnote)
+                                TextField("Digite...", text: $viewModelUm.field3)
                                 Spacer()
                             }
                             
@@ -125,8 +168,7 @@ struct RegistroRefeicao: View {
                                 Spacer()
                             }
                             HStack{
-                                Text("Não senti culpa ao beber.")
-                                    .font(.footnote)
+                                TextField("Digite...", text: $viewModelUm.field4)
                                 Spacer()
                             }
                             
