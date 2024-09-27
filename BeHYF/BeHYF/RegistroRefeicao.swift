@@ -1,12 +1,8 @@
-//
-//  SwiftUIView.swift
-//  study
-//
-//  Created by found on 27/08/24.
-//
-
 import SwiftUI
+import PhotosUI
+import UIKit
 
+// Observables para armazenar e persistir os campos de texto
 class CampoDeTextoUm: ObservableObject {
     @Published var field1: String {
         didSet { UserDefaults.standard.set(field1, forKey: "field1") }
@@ -52,150 +48,199 @@ class CampoDeTextoDois: ObservableObject {
 }
 
 struct RegistroRefeicao: View {
-        
     @StateObject private var viewModelUm = CampoDeTextoUm()
     @StateObject private var viewModelDois = CampoDeTextoDois()
     
+    @State private var capturedImage1: UIImage?
+    @State private var capturedImage2: UIImage?
+    
+    @State private var isShowingCamera1 = false
+    @State private var isShowingCamera2 = false
     
     var body: some View {
         NavigationStack {
             List {
-                
+                // Seção com o primeiro ícone de câmera
                 Section {
-                    // Linha 2
                     HStack {
-                        Image("chá")
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title)
-                            .padding(.horizontal, 60)
+                        // Imagem capturada 1
+                        if let image = capturedImage1 {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 100, height: 100)
+                        } else {
+                            Image("chá")
+                        }
                         
+                        // Botão de captura de imagem usando a câmera
+                        Button(action: {
+                            isShowingCamera1 = true
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title)
+                                .padding(.horizontal, 60)
+                                .foregroundColor(.white) // Cor do ícone para branco
+                        }
+                        .sheet(isPresented: $isShowingCamera1) {
+                            CameraView(isPresented: $isShowingCamera1, capturedImage: $capturedImage1)
+                        }
                     }
-                    
                 }
                 
-                Section() {
-                    // Linha 1
+                // Seção com o segundo ícone de câmera
+                Section {
                     HStack {
                         Spacer()
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title)
+                        Button(action: {
+                            isShowingCamera2 = true
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title)
+                                .foregroundColor(.white) // Cor do ícone para branco
+                        }
+                        .sheet(isPresented: $isShowingCamera2) {
+                            CameraView(isPresented: $isShowingCamera2, capturedImage: $capturedImage2)
+                        }
                         Spacer()
                     }
                 }
                 
+                // Seção "Alimentos Ingeridos"
                 Section("Alimentos Ingeridos") {
-                    // Linha 1
                     HStack {
-                        VStack{
-                            HStack{
+                        VStack {
+                            HStack {
                                 TextField("(Nome do alimento)", text: $viewModelDois.field5)
                                     .foregroundStyle(.blue)
                                     .bold()
                                 Spacer()
                                 TextField("ml/kcal", text: $viewModelDois.field6)
-                                
                             }
                             
                             Spacer()
                             
-                            HStack{
+                            HStack {
                                 Text("Descrição:")
                                     .font(.subheadline)
                                     .bold()
                                 Spacer()
-                                
                             }
-                            HStack{
+                            HStack {
                                 TextField("Digite...", text: $viewModelUm.field1)
                                 Spacer()
                             }
                             
                             Spacer()
                             
-                            HStack{
+                            HStack {
                                 Text("Emoções associadas:")
                                     .font(.subheadline)
                                     .bold()
                                 Spacer()
                             }
-                            HStack{
+                            HStack {
                                 TextField("Digite...", text: $viewModelUm.field2)
                                 Spacer()
-                                
                             }
-                            
                         }
-                        
-                        
                     }
-                    
-                    
                 }
                 
-                Section() {
-                    // Linha 1
+                // Seção "Chá"
+                Section {
                     HStack {
-                        VStack{
-                            HStack{
+                        VStack {
+                            HStack {
                                 TextField("(Nome do alimento)", text: $viewModelDois.field7)
                                     .foregroundStyle(.blue)
                                     .bold()
                                 Spacer()
                                 TextField("ml/kcal", text: $viewModelDois.field8)
-                                
                             }
                             
                             Spacer()
                             
-                            HStack{
+                            HStack {
                                 Text("Descrição:")
                                     .font(.subheadline)
                                     .bold()
                                 Spacer()
-                                
                             }
-                            HStack{
+                            HStack {
                                 TextField("Digite...", text: $viewModelUm.field3)
                                 Spacer()
                             }
                             
                             Spacer()
                             
-                            HStack{
+                            HStack {
                                 Text("Emoções associadas:")
                                     .font(.subheadline)
                                     .bold()
                                 Spacer()
                             }
-                            HStack{
+                            HStack {
                                 TextField("Digite...", text: $viewModelUm.field4)
                                 Spacer()
                             }
-                            
                         }
-                        
-                        
                     }
                 }
             }
-            //            .navigationTitle("Olá, Rafael!")
-            //            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem {
-                        VStack{
+                    VStack {
                         Text("Café da Manhã")
-                            Text("7:30")
-                                .font(.footnote)
-                            Text("24/01/24")
-                                .font(.footnote)
-                        }
+                        Text("7:30")
+                            .font(.footnote)
+                        Text("24/01/24")
+                            .font(.footnote)
+                    }
                     .font(.title)
                     .bold()
-                    
                 }
             }
         }
     }
+}
+
+// UIViewControllerRepresentable para capturar a imagem usando UIImagePickerController
+struct CameraView: UIViewControllerRepresentable {
+    @Binding var isPresented: Bool
+    @Binding var capturedImage: UIImage?
+    
+    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let parent: CameraView
+
+        init(_ parent: CameraView) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let uiImage = info[.originalImage] as? UIImage {
+                parent.capturedImage = uiImage
+            }
+            parent.isPresented = false
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.isPresented = false
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(self)
+    }
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .camera
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 }
 
 #Preview {
